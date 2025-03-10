@@ -1,0 +1,56 @@
+#Random seed
+seed: 42
+data_washed : True
+features_calculated : True
+DFT_done : True
+# hierarchical clustering 
+hc:
+  method: 'ward' #options: "single", "complete", "average", "ward"
+  dendro:
+    fig_size_x: 8
+    fig_size_y: 11.5
+    dpi: 400
+    font: 'Arial'
+    font_size: 2
+    borderlw: 0.25
+    treelw: 0.5
+    save: './outputs/hc_dendro.png'
+  distance: 0.5
+  partition_line: 3.7
+  save_infor: './outputs/hc_information.csv'
+  _get: # descriptor = mol.GetName()
+  - 'NumAtoms'
+  - 'NumHeavyAtoms'
+  _2d: # descriptor = Descriptors.Name(mol)
+  - 'NumHeteroatoms'
+  - 'NumRotatableBonds'
+  - 'RingCount'
+  - 'NumAromaticRings'
+  - 'NumAromaticCarbocycles'
+  - 'NumHAcceptors'
+  - 'MolWt'
+  - 'HeavyAtomMolWt'
+  - 'TPSA'
+  _3d: # descriptor = Descriptors3D.Name(mol)
+  - 'Asphericity'
+  - 'Eccentricity'
+  - 'NPR1'
+  - 'NPR2'
+  - 'PMI1'
+  - 'PMI2'
+  - 'PMI3'
+  - 'RadiusOfGyration'
+  - 'SpherocityIndex'
+
+# kmeans clustering
+kmeans:
+  n_cluster: 12
+  max_iter:  300
+  plot_save: './outputs/kmeans_scatter.png'
+  fit_info_save: './outputs/kmeans_fit_information.csv'
+  plot_info_save: './outputs/kmeans_plot_information.csv'
+  represent_save: './outputs/kmeans_representative_molecules.csv'
+
+# PCA
+PCA:
+  feature_number: 6

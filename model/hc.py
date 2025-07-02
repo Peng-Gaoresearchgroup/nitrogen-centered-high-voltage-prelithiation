@@ -78,7 +78,8 @@ class hierarchical_clustering:
         
         unique_labels = np.unique(labels, return_inverse=True)[1]
         mapping = pd.DataFrame({"Molecule": range(len(unique_labels)), "Cluster": unique_labels})
-        mapping.to_csv(save, index=False)
+        if save:
+            mapping.to_csv(save, index=False)
         grouped = mapping.groupby('Cluster')['Molecule'] \
                .agg(lambda x: ', '.join(x.astype(str))) \
                .sort_index()

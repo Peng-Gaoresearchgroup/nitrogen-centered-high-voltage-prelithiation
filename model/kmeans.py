@@ -3,6 +3,9 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 from utils import extract_xy
+from sklearn.metrics import silhouette_score
+from sklearn.manifold import TSNE
+
 
 class kmeans:
     def __init__(self, n_clusters=3, init='k-means++', max_iter=300, random_state=42):
@@ -38,6 +41,7 @@ class kmeans:
         self.cluster_centers_ = self.model.cluster_centers_
         self.labels_ = self.model.labels_
         self.inertia_ = self.model.inertia_
+        self.X=data
     def predict(self, data):
         """
         return:
@@ -148,4 +152,54 @@ class kmeans:
         info=pd.DataFrame(cluster_data)
         info.to_csv(save,index=False)
         return info
+    
+    def get_silhouette_scores(self):
+        return silhouette_score(self.X, self.labels_)
+    
+    def get_wcss(self):
+        if self.inertia_ ==None:
+            print('Model not fit yet')
+        else:
+            return self.inertia_
+        
+    def get_tss(self,data):
+        mean = np.mean(data, axis=0)
+        tss = np.sum(np.linalg.norm(data - mean, axis=1) ** 2)
+        return tss
+    
+    def get_t_sne(self,data, sample_ids=None, perplexity=30, random_state=0):
+
+        if self.labels_ is None:
+            raise ValueError("Fit first!")
+
+        tsne = TSNE(n_components=2, perplexity=perplexity, random_state=random_state)
+        tsne_result = tsne.fit_transform(data)
+
+        n_samples = data.shape[0]
+        if sample_ids is None:
+            sample_ids = list(range(n_samples))
+
+        df = pd.DataFrame({
+            'id': sample_ids,
+            'cluster': self.labels_,
+            'X': tsne_result[:, 0],
+            'Y': tsne_result[:, 1]
+        })
+        df = df.sort_values(by='cluster')
+        return df
+    
+    def get_heatmap(self,data):
+        n_clusters = len(np.unique(self.labels_))
+        cluster_means = np.zeros((n_clusters, data.shape[1]))
+        
+        for i in range(n_clusters):
+            cluster_data = data[self.labels_ == i]
+            cluster_means[i] = np.mean(cluster_data, axis=0)
+
+        df = pd.DataFrame(
+            cluster_means,
+            index=[f"Cluster {i}" for i in range(n_clusters)],
+            columns=[f"PCA feature {j}" for j in range(data.shape[1])]
+        )
+        return df
 

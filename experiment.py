@@ -63,8 +63,38 @@ def compare_heatmap(test):
         df=test.kmeans_model.get_heatmap(data=test.data)
         df.to_csv(f'./experiment/heatmap_k_{i}.csv',index=False)
 
+def get_optima_mol(k):
+    if k !=12:
+        rank_real,rank_normalize=utils.get_rank_score(DFT_df=pd.read_csv(f'./data/result_k{k}_m062x_def2svp.csv'))
+        rank_real.to_csv(f'./experiment/rank_absolute_k{k}.csv',index=False)
+        rank_normalize.to_csv(f'./experiment/rank_normalized_k{k}.csv',index=False)
+    else:
+        rank_real,rank_normalize=utils.get_rank_score(DFT_df=pd.read_csv(f'./data/result_all_m062x_def2svp.csv'))
+        rank_real.to_csv(f'./outputs/rank_absolute.csv',index=False)
+        rank_normalize.to_csv(f'./outputs/rank_normalized.csv',index=False)
+
+def rank_process_al(k):
+    def rank_al(al):
+            return 1 if 3.7 <= float(al) <= 4.3 else 0
+    if k!=12:
+        df=pd.read_csv(f'./experiment/rank_absolute_k{k}.csv')
+        df['anode_limit']=df['anode_limit'].apply(rank_al)
+        df[['precursor_scscore','scscore','anode_limit','element_friendliness','capacity(mAh/g)']] = df[['precursor_scscore','scscore','anode_limit','element_friendliness','capacity(mAh/g)']].apply(lambda x: (x - x.min()) / (x.max() - x.min()))
+        df['total_score']=df['precursor_scscore']+df['scscore']+df['anode_limit']+df['element_friendliness']+df['capacity(mAh/g)']
+        df=df.sort_values(by='total_score',ascending=False)
+        df.to_csv(f'./experiment/rank_normalized_k{k}.csv',index=False)
+    if k==12:
+        df=pd.read_csv(f'./outputs/rank_absolute.csv')
+        df['anode_limit']=df['anode_limit'].apply(rank_al)
+        df[['precursor_scscore','scscore','anode_limit','element_friendliness','capacity(mAh/g)']] = df[['precursor_scscore','scscore','anode_limit','element_friendliness','capacity(mAh/g)']].apply(lambda x: (x - x.min()) / (x.max() - x.min()))
+        df['total_score']=df['precursor_scscore']+df['scscore']+df['anode_limit']+df['element_friendliness']+df['capacity(mAh/g)']
+        df=df.sort_values(by='total_score',ascending=False)
+        df.to_csv(f'./outputs/rank_normalized.csv',index=False)
+
 if __name__=="__main__":
-    test=Test()
+    k = int(sys.argv[1])
+    # print(k,type(k))
+    # test=Test()
     # k_partitionline(test=test,partition=9)
     # compare_silhouette_score(test=test)
     # compare_wcss(test)
@@ -74,7 +104,9 @@ if __name__=="__main__":
     # print(df[df['id']==11])
     # print(df.loc[342])
     # compare_representative_mols(test=test)
-    compare_heatmap(test)
+    # compare_heatmap(test)
+    get_optima_mol(k)
+    rank_process_al(k)
 
 
 
